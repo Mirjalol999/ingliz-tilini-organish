@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LingvoUz — Ingliz tilini oson va interaktiv o'rganing</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Flashcard 3D Flip Animation */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        .transform-style-3d {
+            transform-style: preserve-3d;
+        }
+        .backface-hidden {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Smooth Fade In */
+        .fade-in {
+            animation: fadeIn 0.35s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col selection:bg-brand-500 selection:text-white">
+
+    <!-- Top Navigation Bar -->
+    <header class="bg-white/90 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+            <!-- Logo -->
+            <div class="flex items-center gap-2.5 cursor-pointer" onclick="switchTab('topics')">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-brand-500/20">
+                    <i data-lucide="graduation-cap" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <span class="font-extrabold text-xl tracking-tight text-slate-900">Lingvo<span class="text-brand-600">Uz</span></span>
+                    <span class="hidden sm:inline-block text-xs font-medium bg-brand-50 text-brand-700 px-2 py-0.5 rounded-full ml-1.5">Interaktiv</span>
+                </div>
+            </div>
+
+            <!-- Desktop Navigation -->
+            <nav class="hidden md:flex items-center gap-1 bg-slate-100/80 p-1 rounded-xl">
+                <button onclick="switchTab('topics')" id="nav-topics" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 bg-white text-brand-600 shadow-sm">
+                    <i data-lucide="layout-grid" class="w-4 h-4"></i> Mavzular
+                </button>
+                <button onclick="switchTab('flashcards')" id="nav-flashcards" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 text-slate-600 hover:text-slate-900">
+                    <i data-lucide="layers" class="w-4 h-4"></i> Flashcardlar
+                </button>
+                <button onclick="switchTab('quiz')" id="nav-quiz" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 text-slate-600 hover:text-slate-900">
+                    <i data-lucide="check-circle-2" class="w-4 h-4"></i> Test (Quiz)
+                </button>
+                <button onclick="switchTab('grammar')" id="nav-grammar" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 text-slate-600 hover:text-slate-900">
+                    <i data-lucide="book-open" class="w-4 h-4"></i> Grammatika
+                </button>
+            </nav>
+
+            <!-- Quick Stats Badge -->
+            <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2 bg-amber-50 border border-amber-200/80 px-3 py-1.5 rounded-xl" title="Yodlangan so'zlar">
+                    <i data-lucide="star" class="w-4 h-4 text-amber-500 fill-amber-500"></i>
+                    <span class="text-sm font-bold text-amber-900" id="header-learned-count">0</span>
+                </div>
+                <button onclick="openResetModal()" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors" title="Natijalarni nolga tushirish">
+                    <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 pb-24 md:pb-12">
+
+        <!-- Progress Tracker Banner (Always visible at top) -->
+        <section class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/80 shadow-sm mb-8">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                        <i data-lucide="trending-up" class="w-5 h-5 text-brand-600"></i>
+                        Sizning o'quv ko'rsatkichingiz
+                    </h2>
+                    <p class="text-sm text-slate-500 mt-0.5">Har kuni kamida 10 ta yangi so'z yodlashni maqsad qiling!</p>
+                </div>
+
+                <!-- Metrics Grid -->
+                <div class="grid grid-cols-3 gap-3 sm:gap-6">
+                    <div class="bg-brand-50/70 border border-brand-100 rounded-xl px-3.5 py-2.5">
+                        <div class="text-xs font-medium text-brand-700">Yodlangan so'zlar</div>
+                        <div class="text-xl sm:text-2xl font-extrabold text-brand-900 mt-0.5">
+                            <span id="stat-learned">0</span><span class="text-sm font-medium text-brand-500" id="stat-total-words">/32</span>
+                        </div>
+                    </div>
+                    <div class="bg-emerald-50/70 border border-emerald-100 rounded-xl px-3.5 py-2.5">
+                        <div class="text-xs font-medium text-emerald-700">Test ballari</div>
+                        <div class="text-xl sm:text-2xl font-extrabold text-emerald-900 mt-0.5" id="stat-quiz-score">0</div>
+                    </div>
+                    <div class="bg-indigo-50/70 border border-indigo-100 rounded-xl px-3.5 py-2.5">
+                        <div class="text-xs font-medium text-indigo-700">O'zlashtirish</div>
+                        <div class="text-xl sm:text-2xl font-extrabold text-indigo-900 mt-0.5" id="stat-percent">0%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Overall Progress Bar -->
+            <div class="mt-4">
+                <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                    <div id="overall-progress-bar" class="bg-gradient-to-r from-brand-500 to-indigo-600 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 1. MAVZULAR (TOPICS) TAB ==================== -->
+        <section id="tab-topics" class="tab-section fade-in">
+            <div class="mb-6">
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900">Mavzularni tanlang</h1>
+                <p class="text-slate-600 mt-1">O'zingizga kerakli bo'limni tanlab, yangi so'zlarni yodlang yoki bilimingizni sinang.</p>
+            </div>
+
+            <div id="topics-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                <!-- Topic cards injected by JS -->
+            </div>
+
+            <!-- Quick Vocabulary Preview for Selected Topic -->
+            <div class="mt-10 bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+                <div class="p-5 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-brand-600">Tanlangan mavzu lug'ati</span>
+                        <h3 id="preview-topic-title" class="text-xl font-bold text-slate-900 mt-0.5">Salomlashish va Tanishuv</h3>
+                    </div>
+                    <div class="flex gap-2.5">
+                        <button onclick="switchTab('flashcards')" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl transition-colors flex items-center gap-2 shadow-sm">
+                            <i data-lucide="layers" class="w-4 h-4"></i> Kartochkalarda o'rganish
+                        </button>
+                        <button onclick="switchTab('quiz')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-sm font-semibold rounded-xl transition-colors flex items-center gap-2">
+                            <i data-lucide="play" class="w-4 h-4"></i> Test topshirish
+                        </button>
+                    </div>
+                </div>
+                <div id="topic-word-list" class="divide-y divide-slate-100">
+                    <!-- Words list injected by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 2. FLASHCARDS TAB ==================== -->
+        <section id="tab-flashcards" class="tab-section hidden fade-in">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                <div>
+                    <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900">So'z kartochkalari</h1>
+                    <p class="text-slate-600 mt-1">Tarjimasini ko'rish uchun kartochka ustiga bosing.</p>
+                </div>
+
+                <!-- Category Filter -->
+                <div class="flex items-center gap-2">
+                    <label for="flashcard-topic-select" class="text-sm font-medium text-slate-600">Mavzu:</label>
+                    <select id="flashcard-topic-select" onchange="changeFlashcardTopic(this.value)" class="bg-white border border-slate-300 text-slate-800 text-sm font-semibold rounded-xl px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <!-- Options injected by JS -->
+                    </select>
+                </div>
+            </div>
+
+            <!-- Flashcard Workspace -->
+            <div class="max-w-xl mx-auto">
+                <!-- Card Counter & Status -->
+                <div class="flex items-center justify-between mb-3 px-1">
+                    <span class="text-sm font-semibold text-slate-500">Kartochka: <span id="fc-counter" class="text-slate-900">1 / 8</span></span>
+                    <span id="fc-learned-badge" class="hidden items-center gap-1 text-xs font-bold bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full">
+                        <i data-lucide="check" class="w-3.5 h-3.5"></i> Yodlangan
+                    </span>
+                </div>
+
+                <!-- 3D Flip Card -->
+                <div class="perspective-1000 w-full h-80 sm:h-96 cursor-pointer select-none" onclick="flipCard()">
+                    <div id="flashcard-inner" class="relative w-full h-full transition-transform duration-500 transform-style-3d">
+                        
+                        <!-- FRONT SIDE (English) -->
+                        <div class="absolute inset-0 backface-hidden bg-white rounded-3xl border-2 border-slate-200/90 shadow-lg shadow-slate-200/50 p-6 sm:p-8 flex flex-col justify-between">
+                            <div class="flex items-center justify-between">
+                                <span id="fc-category-tag" class="text-xs font-bold uppercase tracking-wider bg-brand-50 text-brand-700 px-3 py-1 rounded-full">Salomlashish</span>
+                                <button onclick="event.stopPropagation(); speakCurrentWord()" class="w-11 h-11 rounded-full bg-brand-50 hover:bg-brand-100 text-brand-600 flex items-center justify-center transition-transform active:scale-95" title="Talaffuzni eshitish">
+                                    <i data-lucide="volume-2" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+
+                            <div class="text-center my-auto">
+                                <h2 id="fc-english" class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">Hello</h2>
+                                <p id="fc-transcription" class="text-lg text-slate-500 font-mono mt-2">/həˈləʊ/</p>
+                            </div>
+
+                            <div class="text-center text-xs font-medium text-slate-400 flex items-center justify-center gap-1.5">
+                                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Tarjimasini ko'rish uchun bosing
+                            </div>
+                        </div>
+
+                        <!-- BACK SIDE (Uzbek + Example) -->
+                        <div class="absolute inset-0 backface-hidden rotate-y-180 bg-gradient-to-br from-brand-600 to-indigo-700 text-white rounded-3xl shadow-xl shadow-brand-600/20 p-6 sm:p-8 flex flex-col justify-between">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold uppercase tracking-wider bg-white/20 px-3 py-1 rounded-full">O'zbekcha tarjimasi</span>
+                                <button onclick="event.stopPropagation(); speakCurrentWord()" class="w-11 h-11 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-transform active:scale-95" title="Qayta eshitish">
+                                    <i data-lucide="volume-2" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+
+                            <div class="text-center my-auto">
+                                <h2 id="fc-uzbek" class="text-3xl sm:text-4xl font-extrabold tracking-tight">Salom</h2>
+                                <div class="mt-5 bg-white/10 backdrop-blur-sm rounded-2xl p-4 text-left border border-white/15">
+                                    <p class="text-xs uppercase tracking-wider text-brand-200 font-semibold mb-1">Misol:</p>
+                                    <p id="fc-example-en" class="text-sm sm:text-base font-medium text-white">"Hello, how are you today?"</p>
+                                    <p id="fc-example-uz" class="text-xs sm:text-sm text-brand-100 mt-1">"Salom, bugun ahvolingiz qanday?"</p>
+                                </div>
+                            </div>
+
+                            <div class="text-center text-xs font-medium text-brand-200 flex items-center justify-center gap-1.5">
+                                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Orqaga qaytarish uchun bosing
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Flashcard Controls -->
+                <div class="mt-6 flex items-center justify-between gap-3">
+                    <button onclick="prevCard()" class="flex-1 py-3.5 px-4 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-semibold rounded-2xl transition-colors flex items-center justify-center gap-2 shadow-sm">
+                        <i data-lucide="arrow-left" class="w-5 h-5"></i> Oldingi
+                    </button>
+
+                    <button id="btn-mark-learned" onclick="toggleLearnedCurrent()" class="flex-[1.4] py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-2xl transition-all flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20">
+                        <i data-lucide="check-circle" class="w-5 h-5"></i> <span>Yodladim</span>
+                    </button>
+
+                    <button onclick="nextCard()" class="flex-1 py-3.5 px-4 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-semibold rounded-2xl transition-colors flex items-center justify-center gap-2 shadow-sm">
+                        Keyingi <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 3. QUIZ (TEST) TAB ==================== -->
+        <section id="tab-quiz" class="tab-section hidden fade-in">
+            <div class="max-w-2xl mx-auto">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                    <div>
+                        <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900">Bilimni sinash (Test)</h1>
+                        <p class="text-slate-600 mt-1">So'zlarning to'g'ri tarjimasini toping va ball to'plang.</p>
+                    </div>
+                    <select id="quiz-topic-select" onchange="startNewQuiz(this.value)" class="bg-white border border-slate-300 text-slate-800 text-sm font-semibold rounded-xl px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <option value="all">Barcha mavzular (Aralash)</option>
+                        <!-- Other topics injected by JS -->
+                    </select>
+                </div>
+
+                <!-- Active Quiz Container -->
+                <div id="quiz-box" class="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-8">
+                    <!-- Top Bar: Question Progress & Current Score -->
+                    <div class="flex items-center justify-between mb-6">
+                        <span class="text-sm font-bold text-brand-600 bg-brand-50 px-3 py-1 rounded-full" id="quiz-progress-text">Savol 1 / 6</span>
+                        <span class="text-sm font-bold text-slate-700">Joriy ball: <span id="quiz-current-score" class="text-emerald-600">0</span></span>
+                    </div>
+
+                    <!-- Progress Line -->
+                    <div class="w-full bg-slate-100 h-2 rounded-full mb-8 overflow-hidden">
+                        <div id="quiz-progress-bar" class="bg-brand-600 h-full transition-all duration-300" style="width: 16%"></div>
+                    </div>
+
+                    <!-- Question Prompt -->
+                    <div class="text-center mb-8">
+                        <p class="text-xs uppercase tracking-wider font-semibold text-slate-400 mb-2">Quyidagi so'zning tarjimasi nima?</p>
+                        <div class="inline-flex items-center gap-3">
+                            <h2 id="quiz-question-word" class="text-3xl sm:text-4xl font-extrabold text-slate-900">Good morning</h2>
+                            <button onclick="speakQuizWord()" class="p-2.5 rounded-full bg-slate-100 hover:bg-brand-100 text-brand-600 transition-colors" title="Talaffuzni eshitish">
+                                <i data-lucide="volume-2" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                        <p id="quiz-question-trans" class="text-sm text-slate-400 font-mono mt-1">/ɡʊd ˈmɔːnɪŋ/</p>
+                    </div>
+
+                    <!-- 4 Options Grid -->
+                    <div id="quiz-options" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <!-- Options injected by JS -->
+                    </div>
+
+                    <!-- Feedback & Next Button -->
+                    <div id="quiz-footer" class="mt-6 pt-5 border-t border-slate-100 flex items-center justify-between hidden">
+                        <div id="quiz-feedback-msg" class="text-sm font-bold flex items-center gap-2"></div>
+                        <button onclick="nextQuizQuestion()" class="px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl transition-colors flex items-center gap-2 shadow-sm">
+                            Keyingi savol <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quiz Result Screen (Hidden initially) -->
+                <div id="quiz-result-box" class="hidden bg-white rounded-3xl border border-slate-200/90 shadow-sm p-8 text-center">
+                    <div class="w-20 h-20 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-5">
+                        <i data-lucide="award" class="w-10 h-10"></i>
+                    </div>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900">Test yakunlandi!</h2>
+                    <p class="text-slate-600 mt-2">Sizning natijangiz saqlandi va umumiy balingizga qo'shildi.</p>
+
+                    <div class="my-6 inline-flex items-center gap-6 bg-slate-50 border border-slate-200/80 px-8 py-4 rounded-2xl">
+                        <div>
+                            <div class="text-xs font-semibold text-slate-500 uppercase">To'g'ri javoblar</div>
+                            <div class="text-2xl font-extrabold text-slate-900 mt-0.5" id="result-correct-count">5 / 6</div>
+                        </div>
+                        <div class="h-10 w-px bg-slate-200"></div>
+                        <div>
+                            <div class="text-xs font-semibold text-slate-500 uppercase">To'plangan ball</div>
+                            <div class="text-2xl font-extrabold text-emerald-600 mt-0.5" id="result-points">+50</div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row items-center justify-center gap-3 mt-2">
+                        <button onclick="startNewQuiz(document.getElementById('quiz-topic-select').value)" class="w-full sm:w-auto px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2">
+                            <i data-lucide="rotate-cw" class="w-4 h-4"></i> Qayta topshirish
+                        </button>
+                        <button onclick="switchTab('flashcards')" class="w-full sm:w-auto px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold rounded-xl transition-colors">
+                            So'zlarni takrorlash
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 4. GRAMMAR TAB ==================== -->
+        <section id="tab-grammar" class="tab-section hidden fade-in">
+            <div class="mb-6">
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900">Grammatika qo'llanmasi</h1>
+                <p class="text-slate-600 mt-1">Ingliz tili grammatikasining eng muhim qoidalari sodda va tushunarli tilda.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Grammar Cards -->
+                
+                <!-- Card 1: To Be -->
+                <div class="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="px-3 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-full">1-Dars • Boshlang'ich</span>
+                            <i data-lucide="book-marked" class="w-5 h-5 text-blue-600"></i>
+                        </div>
+                        <h3 class="text-xl font-extrabold text-slate-900 mb-2">"To Be" fe'li (am, is, are)</h3>
+                        <p class="text-sm text-slate-600 leading-relaxed mb-4">
+                            Ingliz tilida gapda harakat fe'li bo'lmaganda (masalan: "Men talabaman", "U shifokor"), <strong>to be</strong> fe'li ishlatiladi. Hozirgi zamonda u 3 shaklga ega:
+                        </p>
+                        
+                        <div class="bg-slate-50 rounded-xl p-3.5 space-y-2 text-sm border border-slate-100 mb-4">
+                            <div class="flex justify-between"><span class="font-bold text-brand-700">I am</span> <span class="text-slate-600">Men (bo'lmoq)</span></div>
+                            <div class="flex justify-between"><span class="font-bold text-brand-700">He / She / It is</span> <span class="text-slate-600">U (birlik)</span></div>
+                            <div class="flex justify-between"><span class="font-bold text-brand-700">You / We / They are</span> <span class="text-slate-600">Siz / Biz / Ular</span></div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <p class="text-xs font-bold uppercase text-slate-400">Misollar:</p>
+                            <div class="p-3 bg-emerald-50/60 border border-emerald-100 rounded-xl text-sm flex items-center justify-between">
+                                <div>
+                                    <p class="font-semibold text-slate-900">I am a student.</p>
+                                    <p class="text-xs text-slate-600">Men talabaman.</p>
+                                </div>
+                                <button onclick="speakText('I am a student')" class="p-2 text-emerald-700 hover:bg-emerald-100 rounded-lg"><i data-lucide="volume-2" class="w-4 h-4"></i></button>
+                            </div>
+                            <div class="p-3 bg-emerald-50/60 border border-emerald-100 rounded-xl text-sm flex items-center justify-between">
+                                <div>
+                                    <p class="font-semibold text-slate-900">They are happy.</p>
+                                    <p class="text-xs text-slate-600">Ular xursand.</p>
+                                </div>
+                                <button onclick="speakText('They are happy')" class="p-2 text-emerald-700 hover:bg-emerald-100 rounded-lg"><i data-lucide="volume-2" class="w-4 h-4"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2: Present Simple -->
+                <div class="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="px-3 py-1 bg-indigo-50 text-indigo-700 text-xs font-bold rounded-full">2-Dars • Zamonlar</span>
+                            <i data-lucide="clock" class="w-5 h-5 text-indigo-600"></i>
+                        </div>
+                        <h3 class="text-xl font-extrabold text-slate-900 mb-2">Present Simple (Oddiy hozirgi zamon)</h3>
+                        <p class="text-sm text-slate-600 leading-relaxed mb-4">
+                            Doimiy takrorlanadigan ish-harakatlar, odatlar va umumiy haqiqatlarni ifodalash uchun ishlatiladi. <strong>He, She, It</strong> uchun fe'l oxiriga <strong>-s / -es</strong> qo'shiladi.
+                        </p>
+                        
+                        <div class="bg-slate-50 rounded-xl p-3.5 space-y-2 text-sm border border-slate-100 mb-4">
+                            <div><span class="font-bold text-indigo-700">Darak:</span> Subject + Verb (+s/es)</div>
+                            <div><span class="font-bold text-indigo-700">Inkor:</span> Subject + do/does + not + Verb</div>
+                            <div><span class="font-bold text-indigo-700">So'roq:</span> Do/Does + Subject + Verb?</div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <p class="text-xs font-bold uppercase text-slate-400">Misollar:</p>
+                            <div class="p-3 bg-indigo-50/60 border border-indigo-100 rounded-xl text-sm flex items-center justify-between">
+                                <div>
+                                    <p class="font-semibold text-slate-900">She works in a bank.</p>
+                                    <p class="text-xs text-slate-600">U bankda ishlaydi.</p>
+                                </div>
+                                <button onclick="speakText('She works in a bank')" class="p-2 text-indigo-700 hover:bg-indigo-100 rounded-lg"><i data-lucide="volume-2" class="w-4 h-4"></i></button>
+                            </div>
+                            <div class="p-3 bg-indigo-50/60 border border-indigo-100 rounded-xl text-sm flex items-center justify-between">
+                                <div>
+                                    <p class="font-semibold text-slate-900">Do you speak English?</p>
+                                    <p class="text-xs text-slate-600">Siz inglizcha gapirasizmi?</p>
+                                </div>
+                                <button onclick="speakText('Do you speak English?')" class="p-2 text-indigo-700 hover:bg-indigo-100 rounded-lg"><i data-lucide="volume-2" class="w-4 h-4"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3: Articles (a, an, the) -->
+                <div class="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="px-3 py-1 bg-amber-50 text-amber-700 text-xs font-bold rounded-full">3-Dars • Artikl</span>
+                            <i data-lucide="sparkles" class="w-5 h-5 text-amber-600"></i>
+                        </div>
+                        <h3 class="text-xl font-extrabold text-slate-900 mb-2">Artikllar (A, An, The)</h3>
+                        <p class="text-sm text-slate-600 leading-relaxed mb-4">
+                            Ingliz tilida otlar oldidan ko'pincha artikl ishlatiladi. Ular noaniq (<strong>a, an</strong>) va aniq (<strong>the</strong>) turlarga bo'linadi.
+                        </p>
+                        
+                        <div class="bg-slate-50 rounded-xl p-3.5 space-y-2 text-sm border border-slate-100 mb-4">
+                            <div><span class="font-bold text-amber-700">A:</span> Undosh tovush bilan boshlanuvchi birlik ot oldidan (<em>a book</em>).</div>
+                            <div><span class="font-bold text-amber-700">An:</span> Unli tovush bilan boshlanuvchi birlik ot oldidan (<em>an apple</em>).</div>
+                            <div><span class="font-bold text-amber-700">The:</span> Suhbatdoshga ma'lum yoki yagona narsalar uchun (<em>the sun</em>).</div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <p class="text-xs font-bold uppercase text-slate-400">Misollar:</p>
+                            <div class="p-3 bg-amber-50/60 border border-amber-100 rounded-xl text-sm flex items-center justify-between">
+                                <div>
+                                    <p class="font-semibold text-slate-900">I have an orange and a banana.</p>
+                                    <p class="text-xs text-slate-600">Menda apelsin va banan bor.</p>
+                                </div>
+                                <button onclick="speakText('I have an orange and a banana')" class="p-2 text-amber-700 hover:bg-amber-100 rounded-lg"><i data-lucide="volume-2" class="w-4 h-4"></i></button>
+                            </div>
+                            <div class="p-3 bg-amber-50/60 border border-amber-100 rounded-xl text-sm flex items-center justify-between">
+                                <div>
+                                    <p class="font-semibold text-slate-900">Close the door, please.</p>
+                                    <p class="text-xs text-slate-600">Iltimos, eshikni yoping.</p>
+                                </div>
+                                <button onclick="speakText('Close the door, please')" class="p-2 text-amber-700 hover:bg-amber-100 rounded-lg"><i data-lucide="volume-2" class="w-4 h-4"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Mobile Bottom Navigation Bar -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-2 py-1.5 flex justify-around items-center z-40 shadow-lg">
+        <button onclick="switchTab('topics')" id="m-nav-topics" class="m-nav-btn flex flex-col items-center gap-1 py-1.5 px-3 rounded-xl text-brand-600">
+            <i data-lucide="layout-grid" class="w-5 h-5"></i>
+            <span class="text-[11px] font-semibold">Mavzular</span>
+        </button>
+        <button onclick="switchTab('flashcards')" id="m-nav-flashcards" class="m-nav-btn flex flex-col items-center gap-1 py-1.5 px-3 rounded-xl text-slate-500">
+            <i data-lucide="layers" class="w-5 h-5"></i>
+            <span class="text-[11px] font-semibold">Kartochka</span>
+        </button>
+        <button onclick="switchTab('quiz')" id="m-nav-quiz" class="m-nav-btn flex flex-col items-center gap-1 py-1.5 px-3 rounded-xl text-slate-500">
+            <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+            <span class="text-[11px] font-semibold">Test</span>
+        </button>
+        <button onclick="switchTab('grammar')" id="m-nav-grammar" class="m-nav-btn flex flex-col items-center gap-1 py-1.5 px-3 rounded-xl text-slate-500">
+            <i data-lucide="book-open" class="w-5 h-5"></i>
+            <span class="text-[11px] font-semibold">Grammatika</span>
+        </button>
+    </nav>
+
+    <!-- Custom Reset Confirmation Modal (No alert/confirm used) -->
+    <div id="reset-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-slate-100 fade-in">
+            <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mb-4">
+                <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900">Natijalarni o'chirish</h3>
+            <p class="text-sm text-slate-600 mt-1.5">Barcha yodlangan so'zlar va test ballaringiz nolga tushiriladi. Davom etasizmi?</p>
+            <div class="mt-6 flex items-center justify-end gap-2.5">
+                <button onclick="closeResetModal()" class="px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 rounded-xl transition-colors">Bekor qilish</button>
+                <button onclick="confirmResetProgress()" class="px-4 py-2 text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition-colors">Ha, tozalash</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-20 md:bottom-6 right-4 sm:right-6 bg-slate-900 text-white text-sm font-medium px-4 py-3 rounded-xl shadow-lg flex items-center gap-2.5 transform translate-y-20 opacity-0 transition-all duration-300 z-50 pointer-events-none">
+        <i data-lucide="info" class="w-4 h-4 text-brand-400"></i>
+        <span id="toast-msg">Xabar</span>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // ==================== DATA: TOPICS & VOCABULARY ====================
+        const TOPICS = [
+            {
+                id: 'greetings',
+                title: 'Salomlashish va Tanishuv',
+                desc: 'Kundalik muloqotni boshlash uchun eng zarur iboralar',
+                icon: 'hand',
+                color: 'blue'
+            },
+            {
+                id: 'daily',
+                title: 'Kundalik iboralar',
+                desc: 'Har kuni ishlatiladigan foydali so‘z va birikmalar',
+                icon: 'coffee',
+                color: 'emerald'
+            },
+            {
+                id: 'travel',
+                title: 'Sayohat va Yo‘nalish',
+                desc: 'Aeroport, mehmonxona va shahar bo‘ylab sayohat uchun',
+                icon: 'plane',
+                color: 'amber'
+            },
+            {
+                id: 'business',
+                title: 'Ish va Biznes',
+                desc: 'Ofis, uchrashuvlar va professional muloqot lug‘ati',
+                icon: 'briefcase',
+                color: 'indigo'
+            }
+        ];
+
+        const VOCABULARY = [
+            // Greetings
+            { id: 1, topic: 'greetings', en: 'Good morning', tr: '/ɡʊd ˈmɔːnɪŋ/', uz: 'Xayrli tong', exEn: 'Good morning! Did you sleep well?', exUz: 'Xayrli tong! Yaxshi uxlab turdingizmi?' },
+            { id: 2, topic: 'greetings', en: 'Nice to meet you', tr: '/naɪs tuː miːt juː/', uz: 'Tanishganimdan xursandman', exEn: 'Hello, I am Ali. Nice to meet you!', exUz: 'Salom, men Aliman. Tanishganimdan xursandman!' },
+            { id: 3, topic: 'greetings', en: 'How are you doing?', tr: '/haʊ ɑː juː ˈduːɪŋ/', uz: 'Ishlaringiz qalay?', exEn: 'Hi Sara, how are you doing today?', exUz: 'Salom Sara, bugun ishlaringiz qalay?' },
+            { id: 4, topic: 'greetings', en: 'Where are you from?', tr: '/weər ɑː juː frɒm/', uz: 'Qayerdansiz?', exEn: 'Where are you from? — I am from Uzbekistan.', exUz: 'Qayerdansiz? — Men O‘zbekistondanman.' },
+            { id: 5, topic: 'greetings', en: 'See you later', tr: '/siː juː ˈleɪtə/', uz: 'Keyinroq ko‘rishguncha', exEn: 'I have to go now, see you later!', exUz: 'Hozir ketishim kerak, keyinroq ko‘rishguncha!' },
+            { id: 6, topic: 'greetings', en: 'Have a nice day', tr: '/hæv ə naɪs deɪ/', uz: 'Kuningiz xayrli o‘tsin', exEn: 'Thank you for your help. Have a nice day!', exUz: 'Yordamingiz uchun rahmat. Kuningiz xayrli o‘tsin!' },
+            { id: 7, topic: 'greetings', en: 'What is your name?', tr: '/wɒt ɪz jɔː neɪm/', uz: 'Ismingiz nima?', exEn: 'Excuse me, what is your name?', exUz: 'Kechirasiz, ismingiz nima?' },
+            { id: 8, topic: 'greetings', en: 'Long time no see', tr: '/lɒŋ taɪm nəʊ siː/', uz: 'Ko‘rishmaganimizga ancha bo‘ldi', exEn: 'Hey! Long time no see, my friend.', exUz: 'Hey! Ko‘rishmaganimizga ancha bo‘ldi, do‘stim.' },
+
+            // Daily Phrases
+            { id: 9, topic: 'daily', en: 'Thank you very much', tr: '/θæŋk juː ˈveri mʌtʃ/', uz: 'Katta rahmat', exEn: 'Thank you very much for the gift.', exUz: 'Sovg‘a uchun katta rahmat.' },
+            { id: 10, topic: 'daily', en: 'Excuse me', tr: '/ɪkˈskjuːz miː/', uz: 'Kechirasiz / Uzr', exEn: 'Excuse me, can I ask a question?', exUz: 'Kechirasiz, savol bersam maylimi?' },
+            { id: 11, topic: 'daily', en: 'I don’t understand', tr: '/aɪ dəʊnt ˌʌndəˈstænd/', uz: 'Men tushunmadim', exEn: 'Could you speak slowly? I don’t understand.', exUz: 'Sekinroq gapira olasizmi? Men tushunmadim.' },
+            { id: 12, topic: 'daily', en: 'How much is this?', tr: '/haʊ mʌtʃ ɪz ðɪs/', uz: 'Bu qancha turadi?', exEn: 'How much is this blue shirt?', exUz: 'Bu ko‘k ko‘ylak qancha turadi?' },
+            { id: 13, topic: 'daily', en: 'Of course', tr: '/əv kɔːs/', uz: 'Albatta', exEn: 'Can you help me? — Yes, of course!', exUz: 'Menga yordam bera olasizmi? — Ha, albatta!' },
+            { id: 14, topic: 'daily', en: 'No problem', tr: '/nəʊ ˈprɒbləm/', uz: 'Muammo yo‘q / Arzimaydi', exEn: 'Thanks for waiting. — No problem at all.', exUz: 'Kutganingiz uchun rahmat. — Hechqisi yo‘q.' },
+            { id: 15, topic: 'daily', en: 'I am hungry', tr: '/aɪ æm ˈhʌŋɡri/', uz: 'Qornim ochdi', exEn: 'Let’s eat something, I am hungry.', exUz: 'Keling biror narsa yeymiz, qornim ochdi.' },
+            { id: 16, topic: 'daily', en: 'What time is it?', tr: '/wɒt taɪm ɪz ɪt/', uz: 'Soat necha bo‘ldi?', exEn: 'Excuse me, what time is it now?', exUz: 'Kechirasiz, hozir soat necha bo‘ldi?' },
+
+            // Travel
+            { id: 17, topic: 'travel', en: 'Airport', tr: '/ˈeəpɔːt/', uz: 'Aeroport', exEn: 'We arrived at the airport two hours early.', exUz: 'Biz aeroportga ikki soat oldin yetib keldik.' },
+            { id: 18, topic: 'travel', en: 'Passport', tr: '/ˈpɑːspɔːt/', uz: 'Pasport', exEn: 'Please show your passport at the border.', exUz: 'Iltimos, chegarada pasportingizni ko‘rsating.' },
+            { id: 19, topic: 'travel', en: 'Ticket', tr: '/ˈtɪkɪt/', uz: 'Chipta', exEn: 'I booked a plane ticket to London.', exUz: 'Men Londonga samolyot chiptasini band qildim.' },
+            { id: 20, topic: 'travel', en: 'Luggage', tr: '/ˈlʌɡɪdʒ/', uz: 'Yuk / Bagaj', exEn: 'My luggage is very heavy.', exUz: 'Mening yukim juda og‘ir.' },
+            { id: 21, topic: 'travel', en: 'Hotel reservation', tr: '/həʊˈtel ˌrezəˈveɪʃn/', uz: 'Mehmonxona band qilish', exEn: 'I have a hotel reservation under my name.', exUz: 'Mening nomimga mehmonxona band qilingan.' },
+            { id: 22, topic: 'travel', en: 'Turn left', tr: '/tɜːn left/', uz: 'Chapga buriling', exEn: 'Go straight and turn left at the corner.', exUz: 'To‘g‘riga yuring va burchakda chapga buriling.' },
+            { id: 23, topic: 'travel', en: 'Train station', tr: '/treɪn ˈsteɪʃn/', uz: 'Poyezd vokzali', exEn: 'How far is the train station from here?', exUz: 'Poyezd vokzali bu yerdan qancha uzoqlikda?' },
+            { id: 24, topic: 'travel', en: 'Departure', tr: '/dɪˈpɑːtʃə/', uz: 'Jo‘nab ketish', exEn: 'The departure time is 10:30 AM.', exUz: 'Jo‘nab ketish vaqti ertalab soat 10:30.' },
+
+            // Business
+            { id: 25, topic: 'business', en: 'Meeting', tr: '/ˈmiːtɪŋ/', uz: 'Uchrashuv / Majlis', exEn: 'We have an important meeting at 3 PM.', exUz: 'Soat 15:00 da muhim uchrashuvimiz bor.' },
+            { id: 26, topic: 'business', en: 'Deadline', tr: '/ˈdedlaɪn/', uz: 'Oxirgi muddat', exEn: 'The deadline for this project is Friday.', exUz: 'Ushbu loyihaning oxirgi muddati — juma.' },
+            { id: 27, topic: 'business', en: 'Agreement', tr: '/əˈɡriːmənt/', uz: 'Kelishuv / Shartnoma', exEn: 'Both companies signed the agreement.', exUz: 'Har ikki kompaniya kelishuvni imzoladi.' },
+            { id: 28, topic: 'business', en: 'Experience', tr: '/ɪkˈspɪəriəns/', uz: 'Tajriba', exEn: 'She has five years of work experience.', exUz: 'Uning besh yillik ish tajribasi bor.' },
+            { id: 29, topic: 'business', en: 'Salary', tr: '/ˈsæləri/', uz: 'Maosh / Oylik', exEn: 'They offered him a very good salary.', exUz: 'Unga juda yaxshi maosh taklif qilishdi.' },
+            { id: 30, topic: 'business', en: 'Colleague', tr: '/ˈkɒliːɡ/', uz: 'Hamkasb', exEn: 'My colleagues are friendly and helpful.', exUz: 'Mening hamkasblarim samimiy va yordamsevar.' },
+            { id: 31, topic: 'business', en: 'Schedule', tr: '/ˈʃedjuːl/', uz: 'Ish jadvali', exEn: 'Let me check my schedule for next week.', exUz: 'Kelasi hafta uchun jadvalimni tekshirib ko‘ray.' },
+            { id: 32, topic: 'business', en: 'Success', tr: '/səkˈses/', uz: 'Muvaffaqiyat', exEn: 'Hard work is the key to success.', exUz: 'Mashaqqatli mehnat — muvaffaqiyat kalitidir.' }
+        ];
+
+        // ==================== STATE MANAGEMENT (localStorage) ====================
+        const STORAGE_KEY = 'lingvouz_progress_v1';
+
+        let appState = {
+            learnedWordIds: [],
+            quizScore: 0,
+            selectedTopic: 'greetings'
+        };
+
+        // Flashcard state
+        let fcTopic = 'greetings';
+        let fcFilteredWords = [];
+        let fcCurrentIndex = 0;
+        let isCardFlipped = false;
+
+        // Quiz state
+        let quizQuestions = [];
+        let quizCurrentIdx = 0;
+        let quizSessionScore = 0;
+        let quizCorrectAnswers = 0;
+        let quizAnswered = false;
+
+        function loadState() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    appState.learnedWordIds = Array.isArray(parsed.learnedWordIds) ? parsed.learnedWordIds : [];
+                    appState.quizScore = typeof parsed.quizScore === 'number' ? parsed.quizScore : 0;
+                    appState.selectedTopic = parsed.selectedTopic || 'greetings';
+                }
+            } catch (e) {
+                console.error("LocalStorage o'qishda xatolik:", e);
+            }
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+                updateProgressUI();
+            } catch (e) {
+                console.error("LocalStorage saqlashda xatolik:", e);
+            }
+        }
+
+        // ==================== SPEECH SYNTHESIS (TEXT-TO-SPEECH) ====================
+        function speakText(text) {
+            if (!('speechSynthesis' in window)) {
+                showToast("Brauzeringiz ovozli o'qishni qo'llab-quvvatlamaydi.");
+                return;
+            }
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.92; // Slightly slower for learners
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function speakCurrentWord() {
+            const word = fcFilteredWords[fcCurrentIndex];
+            if (word) speakText(word.en);
+        }
+
+        function speakQuizWord() {
+            const q = quizQuestions[quizCurrentIdx];
+            if (q) speakText(q.word.en);
+        }
+
+        // ==================== NAVIGATION & TABS ====================
+        function switchTab(tabName) {
+            // Hide all sections
+            document.querySelectorAll('.tab-section').forEach(sec => sec.classList.add('hidden'));
+            
+            // Show target section
+            const target = document.getElementById(`tab-${tabName}`);
+            if (target) {
+                target.classList.remove('hidden');
+                // Re-trigger fade animation
+                target.classList.remove('fade-in');
+                void target.offsetWidth;
+                target.classList.add('fade-in');
+            }
+
+            // Update Desktop Nav styles
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-white', 'text-brand-600', 'shadow-sm');
+                btn.classList.add('text-slate-600');
+            });
+            const activeDesktopBtn = document.getElementById(`nav-${tabName}`);
+            if (activeDesktopBtn) {
+                activeDesktopBtn.classList.add('bg-white', 'text-brand-600', 'shadow-sm');
+                activeDesktopBtn.classList.remove('text-slate-600');
+            }
+
+            // Update Mobile Nav styles
+            document.querySelectorAll('.m-nav-btn').forEach(btn => {
+                btn.classList.remove('text-brand-600');
+                btn.classList.add('text-slate-500');
+            });
+            const activeMobileBtn = document.getElementById(`m-nav-${tabName}`);
+            if (activeMobileBtn) {
+                activeMobileBtn.classList.add('text-brand-600');
+                activeMobileBtn.classList.remove('text-slate-500');
+            }
+
+            // Sync specific tab data
+            if (tabName === 'flashcards') {
+                document.getElementById('flashcard-topic-select').value = appState.selectedTopic;
+                changeFlashcardTopic(appState.selectedTopic);
+            } else if (tabName === 'quiz') {
+                startNewQuiz(document.getElementById('quiz-topic-select').value);
+            }
+        }
+
+        // ==================== PROGRESS TRACKER UI ====================
+        function updateProgressUI() {
+            const totalWords = VOCABULARY.length;
+            const learnedCount = appState.learnedWordIds.length;
+            const percent = Math.round((learnedCount / totalWords) * 100);
+
+            document.getElementById('header-learned-count').textContent = learnedCount;
+            document.getElementById('stat-learned').textContent = learnedCount;
+            document.getElementById('stat-total-words').textContent = `/${totalWords}`;
+            document.getElementById('stat-quiz-score').textContent = appState.quizScore;
+            document.getElementById('stat-percent').textContent = `${percent}%`;
+            document.getElementById('overall-progress-bar').style.width = `${percent}%`;
+
+            renderTopicsGrid();
+            renderTopicWordList(appState.selectedTopic);
+        }
+
+        // ==================== 1. TOPICS SECTION LOGIC ====================
+        function renderTopicsGrid() {
+            const grid = document.getElementById('topics-grid');
+            grid.innerHTML = '';
+
+            const colorMap = {
+                blue: { bg: 'bg-blue-50', text: 'text-blue-600', ring: 'ring-blue-500', bar: 'bg-blue-600' },
+                emerald: { bg: 'bg-emerald-50', text: 'text-emerald-600', ring: 'ring-emerald-500', bar: 'bg-emerald-600' },
+                amber: { bg: 'bg-amber-50', text: 'text-amber-600', ring: 'ring-amber-500', bar: 'bg-amber-600' },
+                indigo: { bg: 'bg-indigo-50', text: 'text-indigo-600', ring: 'ring-indigo-500', bar: 'bg-indigo-600' }
+            };
+
+            TOPICS.forEach(topic => {
+                const wordsInTopic = VOCABULARY.filter(w => w.topic === topic.id);
+                const learnedInTopic = wordsInTopic.filter(w => appState.learnedWordIds.includes(w.id)).length;
+                const progressPct = Math.round((learnedInTopic / wordsInTopic.length) * 100);
+                const isSelected = appState.selectedTopic === topic.id;
+                const c = colorMap[topic.color];
+
+                const card = document.createElement('div');
+                card.className = `bg-white rounded-2xl p-5 border transition-all cursor-pointer flex flex-col justify-between ${
+                    isSelected ? `border-brand-500 ring-2 ${c.ring}/20 shadow-md` : 'border-slate-200/80 hover:border-slate-300 shadow-sm'
+                }`;
+                card.onclick = () => selectTopic(topic.id);
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-11 h-11 rounded-xl ${c.bg} ${c.text} flex items-center justify-center">
+                                <i data-lucide="${topic.icon}" class="w-5 h-5"></i>
+                            </div>
+                            <span class="text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">${learnedInTopic}/${wordsInTopic.length} so'z</span>
+                        </div>
+                        <h3 class="font-bold text-slate-900 text-base">${topic.title}</h3>
+                        <p class="text-xs text-slate-500 mt-1 line-clamp-2">${topic.desc}</p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-100">
+                        <div class="flex justify-between text-[11px] font-semibold text-slate-500 mb-1">
+                            <span>O'zlashtirish</span>
+                            <span>${progressPct}%</span>
+                        </div>
+                        <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                            <div class="${c.bar} h-full rounded-full transition-all duration-300" style="width: ${progressPct}%"></div>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            lucide.createIcons();
+        }
+
+        function selectTopic(topicId) {
+            appState.selectedTopic = topicId;
+            saveState();
+            renderTopicWordList(topicId);
+        }
+
+        function renderTopicWordList(topicId) {
+            const topic = TOPICS.find(t => t.id === topicId) || TOPICS[0];
+            document.getElementById('preview-topic-title').textContent = topic.title;
+
+            const list = document.getElementById('topic-word-list');
+            list.innerHTML = '';
+
+            const words = VOCABULARY.filter(w => w.topic === topicId);
+            words.forEach(word => {
+                const isLearned = appState.learnedWordIds.includes(word.id);
+                const row = document.createElement('div');
+                row.className = 'p-4 sm:px-6 flex items-center justify-between gap-4 hover:bg-slate-50/80 transition-colors';
+                row.innerHTML = `
+                    <div class="flex items-center gap-3.5">
+                        <button onclick="speakText('${word.en.replace(/'/g, "\\'")}')" class="w-9 h-9 rounded-full bg-brand-50 hover:bg-brand-100 text-brand-600 flex items-center justify-center shrink-0 transition-colors" title="Talaffuzni eshitish">
+                            <i data-lucide="volume-2" class="w-4 h-4"></i>
+                        </button>
+                        <div>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="font-bold text-slate-900">${word.en}</span>
+                                <span class="text-xs font-mono text-slate-400">${word.tr}</span>
+                            </div>
+                            <div class="text-sm text-slate-600 mt-0.5">${word.uz}</div>
+                        </div>
+                    </div>
+                    <button onclick="toggleWordLearnedById(${word.id})" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 shrink-0 ${
+                        isLearned 
+                        ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' 
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }">
+                        <i data-lucide="${isLearned ? 'check-circle-2' : 'circle'}" class="w-3.5 h-3.5"></i>
+                        <span>${isLearned ? 'Yodlangan' : 'Belgilash'}</span>
+                    </button>
+                `;
+                list.appendChild(row);
+            });
+
+            lucide.createIcons();
+        }
+
+        function toggleWordLearnedById(id) {
+            const idx = appState.learnedWordIds.indexOf(id);
+            if (idx === -1) {
+                appState.learnedWordIds.push(id);
+                showToast("So'z yodlanganlar ro'yxatiga qo'shildi!");
+            } else {
+                appState.learnedWordIds.splice(idx, 1);
+            }
+            saveState();
+            if (!document.getElementById('tab-flashcards').classList.contains('hidden')) {
+                renderFlashcard();
+            }
+        }
+
+        // ==================== 2. FLASHCARDS LOGIC ====================
+        function populateTopicSelects() {
+            const fcSelect = document.getElementById('flashcard-topic-select');
+            const quizSelect = document.getElementById('quiz-topic-select');
+
+            TOPICS.forEach(t => {
+                const opt1 = document.createElement('option');
+                opt1.value = t.id;
+                opt1.textContent = t.title;
+                fcSelect.appendChild(opt1);
+
+                const opt2 = document.createElement('option');
+                opt2.value = t.id;
+                opt2.textContent = t.title;
+                quizSelect.appendChild(opt2);
+            });
+        }
+
+        function changeFlashcardTopic(topicId) {
+            fcTopic = topicId;
+            appState.selectedTopic = topicId;
+            fcFilteredWords = VOCABULARY.filter(w => w.topic === topicId);
+            fcCurrentIndex = 0;
+            isCardFlipped = false;
+            document.getElementById('flashcard-inner').classList.remove('rotate-y-180');
+            renderFlashcard();
+        }
+
+        function renderFlashcard() {
+            if (!fcFilteredWords.length) return;
+            const word = fcFilteredWords[fcCurrentIndex];
+            const topicObj = TOPICS.find(t => t.id === word.topic);
+            const isLearned = appState.learnedWordIds.includes(word.id);
+
+            document.getElementById('fc-counter').textContent = `${fcCurrentIndex + 1} / ${fcFilteredWords.length}`;
+            document.getElementById('fc-category-tag').textContent = topicObj ? topicObj.title : '';
+            document.getElementById('fc-english').textContent = word.en;
+            document.getElementById('fc-transcription').textContent = word.tr;
+            document.getElementById('fc-uzbek').textContent = word.uz;
+            document.getElementById('fc-example-en').textContent = `"${word.exEn}"`;
+            document.getElementById('fc-example-uz').textContent = `"${word.exUz}"`;
+
+            // Learned badge & button state
+            const badge = document.getElementById('fc-learned-badge');
+            const btnMark = document.getElementById('btn-mark-learned');
+
+            if (isLearned) {
+                badge.classList.remove('hidden');
+                badge.classList.add('inline-flex');
+                btnMark.className = 'flex-[1.4] py-3.5 px-4 bg-emerald-100 text-emerald-800 border border-emerald-300 font-semibold rounded-2xl transition-all flex items-center justify-center gap-2';
+                btnMark.innerHTML = `<i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-600"></i> <span>Yodlangan</span>`;
+            } else {
+                badge.classList.add('hidden');
+                badge.classList.remove('inline-flex');
+                btnMark.className = 'flex-[1.4] py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-2xl transition-all flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20';
+                btnMark.innerHTML = `<i data-lucide="check-circle" class="w-5 h-5"></i> <span>Yodladim</span>`;
+            }
+
+            lucide.createIcons();
+        }
+
+        function flipCard() {
+            isCardFlipped = !isCardFlipped;
+            const inner = document.getElementById('flashcard-inner');
+            if (isCardFlipped) {
+                inner.classList.add('rotate-y-180');
+            } else {
+                inner.classList.remove('rotate-y-180');
+            }
+        }
+
+        function nextCard() {
+            isCardFlipped = false;
+            document.getElementById('flashcard-inner').classList.remove('rotate-y-180');
+            setTimeout(() => {
+                fcCurrentIndex = (fcCurrentIndex + 1) % fcFilteredWords.length;
+                renderFlashcard();
+            }, 150);
+        }
+
+        function prevCard() {
+            isCardFlipped = false;
+            document.getElementById('flashcard-inner').classList.remove('rotate-y-180');
+            setTimeout(() => {
+                fcCurrentIndex = (fcCurrentIndex - 1 + fcFilteredWords.length) % fcFilteredWords.length;
+                renderFlashcard();
+            }, 150);
+        }
+
+        function toggleLearnedCurrent() {
+            const word = fcFilteredWords[fcCurrentIndex];
+            if (!word) return;
+            toggleWordLearnedById(word.id);
+        }
+
+        // ==================== 3. QUIZ LOGIC ====================
+        function shuffleArray(arr) {
+            const copy = [...arr];
+            for (let i = copy.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [copy[i], copy[j]] = [copy[j], copy[i]];
+            }
+            return copy;
+        }
+
+        function startNewQuiz(topicFilter = 'all') {
+            document.getElementById('quiz-box').classList.remove('hidden');
+            document.getElementById('quiz-result-box').classList.add('hidden');
+
+            let pool = topicFilter === 'all' 
+                ? VOCABULARY 
+                : VOCABULARY.filter(w => w.topic === topicFilter);
+
+            // Pick up to 6 random words
+            const selectedWords = shuffleArray(pool).slice(0, 6);
+
+            quizQuestions = selectedWords.map(correctWord => {
+                // Pick 3 wrong distractors from the entire vocabulary
+                const distractors = shuffleArray(VOCABULARY.filter(w => w.id !== correctWord.id))
+                    .slice(0, 3)
+                    .map(w => w.uz);
+
+                const options = shuffleArray([correctWord.uz, ...distractors]);
+                return {
+                    word: correctWord,
+                    options: options,
+                    correctAnswer: correctWord.uz
+                };
+            });
+
+            quizCurrentIdx = 0;
+            quizSessionScore = 0;
+            quizCorrectAnswers = 0;
+            renderQuizQuestion();
+        }
+
+        function renderQuizQuestion() {
+            quizAnswered = false;
+            const q = quizQuestions[quizCurrentIdx];
+            const total = quizQuestions.length;
+
+            document.getElementById('quiz-progress-text').textContent = `Savol ${quizCurrentIdx + 1} / ${total}`;
+            document.getElementById('quiz-current-score').textContent = quizSessionScore;
+            document.getElementById('quiz-progress-bar').style.width = `${((quizCurrentIdx + 1) / total) * 100}%`;
+
+            document.getElementById('quiz-question-word').textContent = q.word.en;
+            document.getElementById('quiz-question-trans').textContent = q.word.tr;
+
+            const footer = document.getElementById('quiz-footer');
+            footer.classList.add('hidden');
+
+            const optionsContainer = document.getElementById('quiz-options');
+            optionsContainer.innerHTML = '';
+
+            const letters = ['A', 'B', 'C', 'D'];
+            q.options.forEach((optText, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'quiz-opt-btn w-full text-left p-4 rounded-2xl border-2 border-slate-200 hover:border-brand-400 hover:bg-brand-50/40 transition-all font-semibold text-slate-800 flex items-center gap-3';
+                btn.innerHTML = `
+                    <span class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 font-bold text-sm flex items-center justify-center shrink-0">${letters[idx]}</span>
+                    <span>${optText}</span>
+                `;
+                btn.onclick = () => handleQuizAnswer(btn, optText);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function handleQuizAnswer(selectedBtn, selectedText) {
+            if (quizAnswered) return;
+            quizAnswered = true;
+
+            const q = quizQuestions[quizCurrentIdx];
+            const isCorrect = selectedText === q.correctAnswer;
+            const allButtons = document.querySelectorAll('.quiz-opt-btn');
+
+            allButtons.forEach(btn => {
+                btn.disabled = true;
+                const btnText = btn.querySelector('span:last-child').textContent;
+                
+                if (btnText === q.correctAnswer) {
+                    btn.classList.remove('border-slate-200', 'hover:border-brand-400');
+                    btn.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-900');
+                    btn.querySelector('span:first-child').classList.add('bg-emerald-500', 'text-white');
+                } else if (btn === selectedBtn && !isCorrect) {
+                    btn.classList.remove('border-slate-200', 'hover:border-brand-400');
+                    btn.classList.add('border-rose-500', 'bg-rose-50', 'text-rose-900');
+                    btn.querySelector('span:first-child').classList.add('bg-rose-500', 'text-white');
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+
+            const feedbackMsg = document.getElementById('quiz-feedback-msg');
+            if (isCorrect) {
+                quizSessionScore += 10;
+                quizCorrectAnswers += 1;
+                document.getElementById('quiz-current-score').textContent = quizSessionScore;
+                feedbackMsg.innerHTML = `<i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-600"></i> <span class="text-emerald-700">Barakalla! To'g'ri javob (+10 ball)</span>`;
+                
+                // Automatically mark word as learned on correct answer
+                if (!appState.learnedWordIds.includes(q.word.id)) {
+                    appState.learnedWordIds.push(q.word.id);
+                    saveState();
+                }
+            } else {
+                feedbackMsg.innerHTML = `<i data-lucide="x-circle" class="w-5 h-5 text-rose-600"></i> <span class="text-rose-700">Noto'g'ri! To'g'ri javob: ${q.correctAnswer}</span>`;
+            }
+
+            document.getElementById('quiz-footer').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function nextQuizQuestion() {
+            if (quizCurrentIdx + 1 < quizQuestions.length) {
+                quizCurrentIdx++;
+                renderQuizQuestion();
+            } else {
+                finishQuiz();
+            }
+        }
+
+        function finishQuiz() {
+            document.getElementById('quiz-box').classList.add('hidden');
+            document.getElementById('quiz-result-box').classList.remove('hidden');
+
+            document.getElementById('result-correct-count').textContent = `${quizCorrectAnswers} / ${quizQuestions.length}`;
+            document.getElementById('result-points').textContent = `+${quizSessionScore}`;
+
+            appState.quizScore += quizSessionScore;
+            saveState();
+            lucide.createIcons();
+        }
+
+        // ==================== MODAL & TOAST HELPERS ====================
+        function openResetModal() {
+            const modal = document.getElementById('reset-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeResetModal() {
+            const modal = document.getElementById('reset-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function confirmResetProgress() {
+            appState.learnedWordIds = [];
+            appState.quizScore = 0;
+            saveState();
+            closeResetModal();
+            if (!document.getElementById('tab-flashcards').classList.contains('hidden')) {
+                renderFlashcard();
+            }
+            showToast("Barcha natijalar tozalandi.");
+        }
+
+        let toastTimer;
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').textContent = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2800);
+        }
+
+        // ==================== INITIALIZATION ====================
+        window.addEventListener('DOMContentLoaded', () => {
+            loadState();
+            populateTopicSelects();
+            updateProgressUI();
+            changeFlashcardTopic(appState.selectedTopic);
+            lucide.createIcons();
+        });
+    </script>
+</body>
+</html>
